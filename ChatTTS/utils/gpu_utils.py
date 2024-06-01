@@ -2,7 +2,7 @@
 import torch
 import logging
 import psutil
-
+import os
 
 def select_device(min_memory = 2048):
     logger = logging.getLogger(__name__)
@@ -19,12 +19,12 @@ def select_device(min_memory = 2048):
             logger.log(logging.WARNING, f'GPU {selected_gpu} has {round(free_memory_mb, 2)} MB memory left.')
             device = torch.device('cpu')
     elif torch.backends.mps.is_available():
-
+        os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
         device = torch.device("mps")
         # 获取内存使用情况
         memory_info = psutil.virtual_memory()
         free_memory = memory_info.available
-        logger.log(logging.WARNING, f'Using mps instead')
+        logger.log(logging.WARNING, f'Using mps instead, some operation will use the CPU as a fallback')
         free_memory_mb = free_memory / (1024 * 1024)
         if free_memory_mb < min_memory:
             logger.log(logging.WARNING, f'GPU  has {round(free_memory_mb, 2)} MB memory left.')
